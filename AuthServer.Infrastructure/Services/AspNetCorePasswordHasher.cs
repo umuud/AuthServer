@@ -16,9 +16,11 @@ namespace AuthServer.Infrastructure.Services
 
         public string HashPassword(User user, string password)
         {
+            _logger.LogInformation("Hashing password for user {Username}", user.UserName);
             try
             {
                 var hash = _inner.HashPassword(user, password);
+                _logger.LogInformation("Password hashed successfully for user {Username}", user.UserName);
                 return hash;
             }
             catch (Exception ex)
@@ -30,12 +32,19 @@ namespace AuthServer.Infrastructure.Services
 
         public bool VerifyHashedPassword(User user, string hashedPassword, string providedPassword)
         {
+            _logger.LogInformation("Verifying password for user {Username}", user.UserName);
             try
             {
                 var result = _inner.VerifyHashedPassword(user, hashedPassword, providedPassword);
                 var success = result == PasswordVerificationResult.Success;
-                if (!success)
+                if (success)
+                {
+                    _logger.LogInformation("Password verification succeeded for user {Username}", user.UserName);
+                }
+                else
+                {
                     _logger.LogWarning("Password verification failed for user {Username}", user.UserName);
+                }
                 return success;
             }
             catch (Exception ex)

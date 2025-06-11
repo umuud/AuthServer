@@ -23,6 +23,7 @@ namespace AuthServer.Infrastructure.Services
 
         public string CreateToken(User user)
         {
+            _logger.LogInformation("Starting token creation for user {UserId}", user.Id);
             try
             {
                 var claims = new List<Claim>
@@ -45,6 +46,7 @@ namespace AuthServer.Infrastructure.Services
                     signingCredentials: creds);
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                _logger.LogInformation("Token created successfully for user {UserId}", user.Id);
                 return tokenString;
             }
             catch (Exception ex)

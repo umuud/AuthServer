@@ -20,9 +20,11 @@ namespace AuthServer.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest req)
         {
+            _logger.LogInformation("Register attempt for {Username}", req.Username);
             try
             {
                 var userId = await _authService.RegisterAsync(req);
+                _logger.LogInformation("Registration successful for {Username}, UserId: {UserId}", req.Username, userId);
                 return CreatedAtAction(nameof(Register), new { id = userId }, new { id = userId });
             }
             catch (InvalidOperationException ex)
@@ -35,9 +37,11 @@ namespace AuthServer.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
+            _logger.LogInformation("Login attempt for {Username}", req.Username);
             try
             {
                 var token = await _authService.LoginAsync(req);
+                _logger.LogInformation("Login successful for {Username}", req.Username);
                 return Ok(new { token });
             }
             catch (UnauthorizedAccessException ex)

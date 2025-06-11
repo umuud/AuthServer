@@ -27,6 +27,7 @@ namespace AuthServer.Application.Services
 
         public async Task<Guid> RegisterAsync(RegisterRequest request)
         {
+            _logger.LogInformation("Starting registration for {Username}", request.Username);
             if (await _userRepo.GetByUsernameAsync(request.Username) != null)
             {
                 _logger.LogWarning("Registration failed: username {Username} already exists", request.Username);
@@ -43,7 +44,9 @@ namespace AuthServer.Application.Services
                 CreatedAt = DateTime.UtcNow
             };
 
+            _logger.LogInformation("Hashing password for user {Username}", request.Username);
             user.PasswordHash = _hasher.HashPassword(user, request.Password);
+            _logger.LogInformation("Password hashed successfully for {Username}", request.Username);
 
             await _userRepo.AddAsync(user);
             _logger.LogInformation("User registered successfully with Id {UserId}", user.Id);
@@ -53,6 +56,7 @@ namespace AuthServer.Application.Services
 
         public async Task<string> LoginAsync(LoginRequest request)
         {
+            _logger.LogInformation("Starting login for {Username}", request.Username);
             var user = await _userRepo.GetByUsernameAsync(request.Username);
             if (user == null)
             {
@@ -60,12 +64,14 @@ namespace AuthServer.Application.Services
                 throw new UnauthorizedAccessException("Geçersiz kullanıcı adı veya şifre.");
             }
 
+            _logger.LogInformation("Verifying password for user {Username}", request.Username);
             if (!_hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password))
             {
                 _logger.LogWarning("Login failed: invalid password for {Username}", request.Username);
                 throw new UnauthorizedAccessException("Geçersiz kullanıcı adı veya şifre.");
             }
 
+            _logger.LogInformation("Creating JWT token for user {Username}", request.Username);
             var token = _tokenService.CreateToken(user);
             _logger.LogInformation("Login successful for {Username}, token generated", request.Username);
             return token;

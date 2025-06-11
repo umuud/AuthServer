@@ -20,6 +20,7 @@ namespace AuthServer.Infrastructure.Services
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
+            _logger.LogInformation("Starting GetAllAsync");
             try
             {
                 var users = await _context.Users.AsNoTracking().ToListAsync();
@@ -35,6 +36,7 @@ namespace AuthServer.Infrastructure.Services
 
         public async Task<User?> GetByIdAsync(Guid id)
         {
+            _logger.LogInformation("Starting GetByIdAsync for Id: {UserId}", id);
             try
             {
                 var user = await _context.Users
@@ -42,6 +44,8 @@ namespace AuthServer.Infrastructure.Services
                     .FirstOrDefaultAsync(u => u.Id == id);
                 if (user == null)
                     _logger.LogWarning("No user found with Id in GetByIdAsync: {UserId}", id);
+                else
+                    _logger.LogInformation("User found with Id: {UserId}", id);
                 return user;
             }
             catch (Exception ex)
@@ -53,6 +57,7 @@ namespace AuthServer.Infrastructure.Services
 
         public async Task<User?> GetByUsernameAsync(string username)
         {
+            _logger.LogInformation("Starting GetByUsernameAsync for Username: {Username}", username);
             try
             {
                 var user = await _context.Users
@@ -60,6 +65,8 @@ namespace AuthServer.Infrastructure.Services
                     .FirstOrDefaultAsync(u => u.UserName == username);
                 if (user == null)
                     _logger.LogWarning("No user found with Username in GetByUsernameAsync: {Username}", username);
+                else
+                    _logger.LogInformation("User found with Username: {Username}", username);
                 return user;
             }
             catch (Exception ex)
@@ -71,10 +78,12 @@ namespace AuthServer.Infrastructure.Services
 
         public async Task AddAsync(User user)
         {
+            _logger.LogInformation("Starting AddAsync for Username: {Username}", user.UserName);
             try
             {
                 await _context.Users.AddAsync(user);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("User added successfully with Id: {UserId}", user.Id);
             }
             catch (Exception ex)
             {
@@ -85,10 +94,12 @@ namespace AuthServer.Infrastructure.Services
 
         public async Task UpdateAsync(User user)
         {
+            _logger.LogInformation("Starting UpdateAsync for UserId: {UserId}", user.Id);
             try
             {
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("User updated successfully for Id: {UserId}", user.Id);
             }
             catch (Exception ex)
             {
@@ -99,10 +110,12 @@ namespace AuthServer.Infrastructure.Services
 
         public async Task DeleteAsync(User user)
         {
+            _logger.LogInformation("Starting DeleteAsync for UserId: {UserId}", user.Id);
             try
             {
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("User deleted successfully with Id: {UserId}", user.Id);
             }
             catch (Exception ex)
             {
