@@ -53,3 +53,11 @@ Serilog → Elasticsearch’e log
 Kibana → Discover’da gerçek zamanlı log takibi
 
 akışını tamamlamış olacaksın.
+
+Prometheus ve Grafana da projeye eklendi.
+Docker ile ayağıya kaldırmak için 
+docker-compose up -d prometheus
+docker-compose up -d Grafana
+
+Hepsini ayağıya kaldırmak için
+docker-compose up -d

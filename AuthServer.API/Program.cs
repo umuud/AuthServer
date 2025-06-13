@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 using Serilog;
 using Serilog.Debugging;
 using Serilog.Sinks.Elasticsearch;
@@ -91,6 +92,10 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // --- PIPELINE ---
+
+// Prometheus metrik endpoint’i
+app.UseMetricServer();    // exposes /metrics
+app.UseHttpMetrics();     // HTTP request metrikleri otomatik
 
 // A) Logging
 app.UseSerilogRequestLogging();
