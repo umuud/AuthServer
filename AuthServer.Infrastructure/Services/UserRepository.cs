@@ -123,5 +123,13 @@ namespace AuthServer.Infrastructure.Services
                 return;
             }
         }
+
+        public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
+        {
+            return await _context.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.RefreshTokens.Any(rt => rt.Token == refreshToken));
+        }
+
     }
 }

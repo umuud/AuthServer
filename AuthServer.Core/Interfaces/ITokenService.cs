@@ -8,5 +8,12 @@ namespace AuthServer.Core.Interfaces
         /// Create a JWT token string for the specified user.
         /// </summary>
         string CreateToken(User user);
+
+        /// <summary>
+        /// Create Refresh Token
+        /// </summary>
+        /// <param name="ipAddress"></param>
+        /// <returns></returns>
+        RefreshToken GenerateRefreshToken(string ipAddress);
     }
 }

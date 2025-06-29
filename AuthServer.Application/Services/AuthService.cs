@@ -54,7 +54,7 @@ namespace AuthServer.Application.Services
             return user.Id;
         }
 
-        public async Task<string> LoginAsync(LoginRequest request)
+        public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
             _logger.LogInformation("Starting login for {Username}", request.Username);
             var user = await _userRepo.GetByUsernameAsync(request.Username);
@@ -72,9 +72,84 @@ namespace AuthServer.Application.Services
             }
 
             _logger.LogInformation("Creating JWT token for user {Username}", request.Username);
-            var token = _tokenService.CreateToken(user);
-            _logger.LogInformation("Login successful for {Username}, token generated", request.Username);
-            return token;
+            var accessToken = _tokenService.CreateToken(user);
+
+            _logger.LogInformation("Generating refresh token for user {Username}", request.Username);
+            var refreshToken = _tokenService.GenerateRefreshToken(request.IpAddress);
+
+            user.RefreshTokens.Add(refreshToken);
+            await _userRepo.UpdateAsync(user); // RefreshToken'ı kaydediyoruz
+
+            _logger.LogInformation("Login successful for {Username}, tokens generated", request.Username);
+            return new LoginResponse
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken.Token
+            };
         }
+
+        public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request)
+        {
+            _logger.LogInformation("Starting refresh token process");
+
+            var user = await _userRepo.GetUserByRefreshTokenAsync(request.RefreshToken);
+            if (user == null)
+            {
+                _logger.LogWarning("Refresh token not found or user missing");
+                throw new UnauthorizedAccessException("Geçersiz refresh token.");
+            }
+
+            var existingToken = user.RefreshTokens.FirstOrDefault(x => x.Token == request.RefreshToken);
+            if (existingToken == null || !existingToken.IsActive)
+            {
+                _logger.LogWarning("Refresh token is inactive or revoked");
+                throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş refresh token.");
+            }
+
+            // Eski token'ı revoke et
+            existingToken.Revoked = DateTime.UtcNow;
+            existingToken.RevokedByIp = request.IpAddress;
+            var newRefreshToken = _tokenService.GenerateRefreshToken(request.IpAddress ?? "unknown");
+            existingToken.ReplacedByToken = newRefreshToken.Token;
+
+            user.RefreshTokens.Add(newRefreshToken);
+            await _userRepo.UpdateAsync(user);
+
+            var newAccessToken = _tokenService.CreateToken(user);
+
+            return new LoginResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken.Token
+            };
+        }
+
+        public async Task RevokeTokenAsync(RevokeTokenRequest request)
+        {
+            _logger.LogInformation("Revoking refresh token");
+
+            var user = await _userRepo.GetUserByRefreshTokenAsync(request.RefreshToken);
+            if (user == null)
+            {
+                _logger.LogWarning("Token revoke failed: user not found");
+                throw new UnauthorizedAccessException("Geçersiz refresh token.");
+            }
+
+            var token = user.RefreshTokens.FirstOrDefault(t => t.Token == request.RefreshToken);
+            if (token == null || !token.IsActive)
+            {
+                _logger.LogWarning("Token revoke failed: token not active or already revoked");
+                throw new UnauthorizedAccessException("Geçersiz veya zaten iptal edilmiş refresh token.");
+            }
+
+            token.Revoked = DateTime.UtcNow;
+            token.RevokedByIp = request.IpAddress ?? "unknown";
+
+            await _userRepo.UpdateAsync(user);
+
+            _logger.LogInformation("Refresh token revoked successfully");
+        }
+
+
     }
 }

@@ -37,6 +37,9 @@ namespace AuthServer.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            req.IpAddress = ipAddress; // IP adresini ekledik
+
             _logger.LogInformation("Login attempt for {Username}", req.Username);
             try
             {
@@ -50,5 +53,49 @@ namespace AuthServer.API.Controllers
                 return Unauthorized(ex.Message);
             }
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest req)
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            req.IpAddress = ipAddress;
+
+            _logger.LogInformation("Refresh token attempt");
+
+            try
+            {
+                var result = await _authService.RefreshTokenAsync(req);
+                _logger.LogInformation("Refresh token successful");
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Refresh token failed");
+                return Unauthorized(ex.Message);
+            }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] RevokeTokenRequest req)
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            req.IpAddress = ipAddress;
+
+            _logger.LogInformation("Logout attempt");
+
+            try
+            {
+                await _authService.RevokeTokenAsync(req);
+                _logger.LogInformation("Logout successful");
+                return Ok(new { message = "Çıkış yapıldı, token iptal edildi." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Logout failed");
+                return Unauthorized(ex.Message);
+            }
+        }
+
+
     }
 }

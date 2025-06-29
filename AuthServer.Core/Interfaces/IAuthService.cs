@@ -1,6 +1,3 @@
-// AuthServer.Core/Interfaces/IAuthService.cs
-using System;
-using System.Threading.Tasks;
 using AuthServer.Application.DTOs;
 
 namespace AuthServer.Core.Interfaces
@@ -15,6 +12,21 @@ namespace AuthServer.Core.Interfaces
         /// <summary>
         /// Giriş bilgileri doğruysa JWT token’ı döner.
         /// </summary>
-        Task<string> LoginAsync(LoginRequest request);
+        Task<LoginResponse> LoginAsync(LoginRequest request);
+
+        /// <summary>
+        /// Refresh Token
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request);
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task RevokeTokenAsync(RevokeTokenRequest request);
+
     }
 }

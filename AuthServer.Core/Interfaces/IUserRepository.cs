@@ -10,5 +10,7 @@ namespace AuthServer.Core.Interfaces
         Task AddAsync(User user);
         Task UpdateAsync(User user);
         Task DeleteAsync(User user);
+        Task<User?> GetUserByRefreshTokenAsync(string refreshToken);
+
     }
 }

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using System;
 
 namespace AuthServer.Core.Entities
 {
@@ -34,5 +33,10 @@ namespace AuthServer.Core.Entities
         /// Profil güncellenme zamanı (UTC)
         /// </summary>
         public DateTime? UpdatedAt { get; set; }
+
+        /// <summary>
+        /// Kullanıcı ve Refresh Token ilişkisi
+        /// </summary>
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }
